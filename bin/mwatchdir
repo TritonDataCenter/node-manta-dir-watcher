@@ -46,6 +46,11 @@ var OPTIONS = [
         type: 'positiveInteger',
         help: 'Polling interval in seconds. Defaults to the library '
             + 'default of 60s.'
+    },
+    {
+        names: ['group-events', 'g'],
+        type: 'bool',
+        help: 'Group all events from a single poll into one emitted datum.'
     }
 ];
 
@@ -103,12 +108,14 @@ function fatal(errmsg) {
 }
 
 function mwatchdir(opts) {
-    opts.log.debug({dir: opts.dir}, 'mwatchdir');
+    opts.log.debug({dir: opts.dir, interval: opts.interval,
+        groupEvents: opts.groupEvents}, 'mwatchdir');
 
     var watcher = new MantaDirWatcher({
         log: opts.log,
         dir: opts.dir,
-        interval: opts.interval
+        interval: opts.interval,
+        groupEvents: opts.groupEvents
     });
     watcher.on('data', function (event) {
         console.log(JSON.stringify(event));
@@ -173,7 +180,8 @@ function main(argv) {
     mwatchdir({
         log: log,
         dir: dir,
-        interval: opts.interval
+        interval: opts.interval,
+        groupEvents: opts.group_events
     });
 }
 
