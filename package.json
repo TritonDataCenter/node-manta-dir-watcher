@@ -23,6 +23,7 @@
         "vstream": "^0.1.0"
     },
     "devDependencies": {
+        "eslint": "2.13.1",
         "tape": "^4.6.0"
     }
 }

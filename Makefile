@@ -1,12 +1,12 @@
 #
-# Copyright 2016 Trent Mick
 # Copyright 2016 Joyent, Inc.
 #
 
-JSSTYLE_FILES := $(shell find lib -name "*.js")
+JS_FILES := $(shell find lib -name "*.js") bin/*
+ESLINT = ./node_modules/.bin/eslint
 
 
-all:
+all $(ESLINT):
 	npm install
 
 .PHONY: distclean
@@ -14,9 +14,12 @@ distclean:
 	rm -rf node_modules
 
 .PHONY: check
-check:: versioncheck
+check:: versioncheck check-eslint
 	@echo "Check ok."
 
+.PHONY: check-eslint
+check-eslint: | $(ESLINT)
+	$(ESLINT) ./
 
 .PHONY: versioncheck
 versioncheck:
