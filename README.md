@@ -43,7 +43,7 @@ var watcher = new MantaDirWatcher({
 });
 
 watcher.on('data', function (event) {
-    console.log(event)
+    console.log(event);
 });
 ```
 

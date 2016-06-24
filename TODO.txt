@@ -3,6 +3,3 @@
 - type filter
 - syncDir option
 
-# later
-
-- eslint check
