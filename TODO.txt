@@ -1,9 +1,8 @@
-- MPLv2 license instead of MIT
-- just commit to joyent instead of trentm
-- all of it
-    - separate clientOpts or take a client if have one???
-    - .close() method
-    - optional bunyan logger
-- test suite
+- grouped per-poll event
+- glob filter: namePattern
+- type filter
+- syncDir option
+
+# later
+
 - eslint check
-- possibly a CLI for easy play, using the MANTA_* vars

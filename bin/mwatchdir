@@ -1,0 +1,182 @@
+#!/usr/bin/env node
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/*
+ * Copyright 2016 Joyent, Inc.
+ */
+
+var assert = require('assert-plus');
+var bunyan = require('bunyan');
+var dashdash = require('dashdash');
+var util = require('util');
+
+var MantaDirWatcher = require('../');
+var pkg = require('../package.json');
+
+
+//---- globals and constants
+
+var NAME = 'mwatchdir';
+
+var OPTIONS = [
+    {
+        name: 'version',
+        type: 'bool',
+        help: 'Print ' + NAME + ' version and exit.'
+    },
+    {
+        names: ['help', 'h'],
+        type: 'bool',
+        help: 'Print this help and exit.'
+    },
+    {
+        names: ['verbose', 'v'],
+        type: 'bool',
+        help: 'Verbose logging.'
+    },
+    {
+        group: ''
+    },
+    {
+        names: ['interval', 'i'],
+        type: 'positiveInteger',
+        help: 'Polling interval in seconds. Defaults to the library '
+            + 'default of 60s.'
+    }
+];
+
+var log = bunyan.createLogger({
+    name: NAME,
+    stream: process.stderr,
+    level: 'warn'
+});
+
+
+//---- support functions
+
+/**
+ * A hacked up version of 'process.exit' that will first drain stdout
+ * before exiting. *WARNING: This doesn't stop event processing.* IOW,
+ * callers have to be careful that code following this call isn't
+ * accidentally executed.
+ */
+function drainStdoutAndExit(code) {
+    debug('(drainStdoutAndExit(%d))', code);
+    stdout.on('drain', function () {
+        cleanupAndExit(code);
+    });
+    if (stdoutFlushed) {
+        cleanupAndExit(code);
+    }
+}
+
+
+/**
+ * A hacked up version of 'process.exit' that will first drain stdout
+ * before exiting. *WARNING: This doesn't stop event processing.* IOW,
+ * callers have to be careful that code following this call isn't
+ * accidentally executed.
+ */
+var _drainingStdout = false;
+function drainStdoutAndExit(stdout, code) {
+    if (_drainingStdout) {
+        return;
+    }
+    _drainingStdout = true;
+    stdout.on('drain', function () {
+        process.exit(code);
+    });
+    stdout.on('close', function () {
+        process.exit(code);
+    });
+    stdout.write('');
+}
+
+
+function fatal(errmsg) {
+    console.error(NAME + ': error: ' + errmsg);
+    process.exit(1);
+}
+
+function mwatchdir(opts) {
+    opts.log.debug({dir: opts.dir}, 'mwatchdir');
+
+    var watcher = new MantaDirWatcher({
+        log: opts.log,
+        dir: opts.dir,
+        interval: opts.interval
+    });
+    watcher.on('data', function (event) {
+        console.log(JSON.stringify(event));
+    });
+}
+
+
+// ---- mainline
+
+function main(argv) {
+    var parser = dashdash.createParser({options: OPTIONS});
+    try {
+        var opts = parser.parse(process.argv);
+    } catch (e) {
+        console.error(NAME + ': error: %s', e.message);
+        process.exit(1);
+    }
+
+    if (opts.help) {
+        var help = parser.help({includeEnv: true}).trimRight();
+        console.log([
+            'Watch a directory in Manta.',
+            '',
+            'This will poll the given Manta dir and emit an event (a JSON',
+            'object) for each change: a file or dir add/remove/change.',
+            '',
+            'Usage:',
+            '    ' + NAME + ' [OPTIONS] MANTA-DIR',
+            '',
+            'Options:',
+            help,
+        ].join('\n'));
+        process.exit(0);
+    } else if (opts.version) {
+        console.log(NAME + ' ' + pkg.version);
+        console.log(pkg.homepage);
+        process.exit(0);
+    }
+    if (opts.verbose) {
+        log.level('trace');
+        log.src = true;
+    }
+
+    if (opts._args.length < 1) {
+        fatal('missing MANTA-DIR argument');
+    } else if (opts._args.length !== 1) {
+        fatal('too many arguments: ' + opts._args.join(' '));
+    }
+    var dir = opts._args[0];
+
+    // Stdout error handling.
+    var stdout = process.stdout;
+    stdout.on('error', function (err) {
+        if (err.code === 'EPIPE') {
+            drainStdoutAndExit(stdout, 0);
+        } else {
+            console.warn(err);
+            drainStdoutAndExit(stdout, 1);
+        }
+    });
+
+    mwatchdir({
+        log: log,
+        dir: dir,
+        interval: opts.interval
+    });
+}
+
+if (require.main === module) {
+    main(process.argv);
+}

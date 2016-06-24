@@ -25,6 +25,7 @@ Limitations:
 ```javascript
 var MantaDirWatcher = require('manta-dir-watcher');
 var watcher = new MantaDirWatcher({
+    //
     // Client options:
     url: ...,
     account: ...,   // XXX user? copy node-manta
@@ -34,9 +35,8 @@ var watcher = new MantaDirWatcher({
     dir: <dir to watch>,
 
     // Optional params:
-    cacheDir: <dir in which this can cache info from the last poll>,
-    pattern: <glob string or regex to match against file/dir names>,
-    syncDir: <local dir to which to sync the dir>,
+    namePattern: <glob string or regex to match against file/dir names>,
+    syncDir: <local dir to which to sync found files>,
 });
 
 // XXX separte events or just data events? If data events we can just
@@ -51,4 +51,4 @@ TODO
 
 # License
 
-MIT. See LICENSE.txt
+MPL-2. See [LICENSE](./LICENSE).
