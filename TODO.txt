@@ -1,5 +1,2 @@
-- handle dir not existing: also state should be {}, not null for that case after init
-- glob filter: namePattern
-- type filter
 - syncDir option
 

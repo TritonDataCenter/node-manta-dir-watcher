@@ -18,6 +18,24 @@ var MantaDirWatcher = require('../');
 var pkg = require('../package.json');
 
 
+// ---- custom dashdash option types
+
+function parseFilterType(option, optstr, arg) {
+    if (MantaDirWatcher.FILTER_TYPES.indexOf(arg) === -1) {
+        throw new Error(format('arg for "%s" is not a known type: "%s"',
+            optstr, arg));
+    }
+    return arg;
+}
+
+dashdash.addOptionType({
+    name: 'filterType',
+    takesArg: true,
+    helpArg: 'TYPE',
+    parseArg: parseFilterType
+});
+
+
 //---- globals and constants
 
 var NAME = 'mwatchdir';
@@ -51,6 +69,18 @@ var OPTIONS = [
         names: ['group-events', 'g'],
         type: 'bool',
         help: 'Group all events from a single poll into one emitted datum.'
+    },
+    {
+        names: ['name', 'n'],
+        type: 'string',
+        help: 'A glob string match against directory entry names to which '
+            + 'to watch.'
+    },
+    {
+        names: ['type', 't'],
+        type: 'filterType',
+        help: 'Either "object" or "directory" to limit matching to entries of '
+            + 'that type.'
     }
 ];
 
@@ -109,13 +139,14 @@ function fatal(errmsg) {
 
 function mwatchdir(opts) {
     opts.log.debug({dir: opts.dir, interval: opts.interval,
-        groupEvents: opts.groupEvents}, 'mwatchdir');
+        groupEvents: opts.groupEvents, filter: opts.filter}, 'mwatchdir');
 
     var watcher = new MantaDirWatcher({
         log: opts.log,
         dir: opts.dir,
         interval: opts.interval,
-        groupEvents: opts.groupEvents
+        groupEvents: opts.groupEvents,
+        filter: opts.filter
     });
     watcher.on('data', function (event) {
         console.log(JSON.stringify(event));
@@ -177,11 +208,18 @@ function main(argv) {
         }
     });
 
+    var filter;
+    if (opts.name || opts.type) {
+        filter = {};
+        if (opts.name) { filter.name = opts.name; }
+        if (opts.type) { filter.type = opts.type; }
+    }
     mwatchdir({
         log: log,
         dir: dir,
         interval: opts.interval,
-        groupEvents: opts.group_events
+        groupEvents: opts.group_events,
+        filter: filter
     });
 }
 

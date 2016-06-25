@@ -8,8 +8,9 @@ directory of relatively few (and if using the sync option, relatively small)
 files.
 
 Optional features:
-- Glob/regex pattern to limit to a subset of files in the dir (via the
-  `namePattern` option).
+- Glob/regex pattern to limit to a subset of files in the dir (via
+  `filter.name` option).
+- Limit to just objects or directories (via `filter.type` option).
 - *Sync* down the files to a local dir (via the `syncDir` option).
 
 Limitations:
@@ -36,7 +37,10 @@ var watcher = new MantaDirWatcher({
     // Optional params:
     groupEvents: <set to true to have all events for a single poll be
         returned in one group>,
-    namePattern: <glob string or regex to match against file/dir names>,
+    filter: {
+        name: <glob string or regex to match against file/dir names>,
+        type: <"object" or "directory" to limit to just that type>
+    },
     syncDir: <local dir to which to sync found files>,
 
     log: <optional bunyan logger>
