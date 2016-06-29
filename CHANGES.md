@@ -2,4 +2,4 @@
 
 ## 1.0.0 (not yet released)
 
-(nothing yet)
+Initial release.

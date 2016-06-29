@@ -98,7 +98,9 @@ var OPTIONS = [
     {
         names: ['sync-delete', 'D'],
         type: 'bool',
-        help: 'Allow syncing to delete local files in the given sync dir.'
+        help: 'Allow syncing to delete local files in the given sync dir. '
+            + 'If not specified, "delete" events will still be reported, but '
+            + 'the local file will be left alone.'
     },
     {
         names: ['disable-sync-delete-guard'],
