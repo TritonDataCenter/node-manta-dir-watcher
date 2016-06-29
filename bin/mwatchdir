@@ -12,6 +12,7 @@
 var assert = require('assert-plus');
 var bunyan = require('bunyan');
 var dashdash = require('dashdash');
+var tabula = require('tabula');
 var util = require('util');
 
 var MantaDirWatcher = require('../');
@@ -57,18 +58,18 @@ var OPTIONS = [
         help: 'Verbose logging.'
     },
     {
-        group: ''
+        names: ['json', 'j'],
+        type: 'bool',
+        help: 'Output raw JSON polling data, rather than tabular output.'
+    },
+    {
+        group: 'Watch Options'
     },
     {
         names: ['interval', 'i'],
         type: 'positiveInteger',
         help: 'Polling interval in seconds. Defaults to the library '
             + 'default of 60s.'
-    },
-    {
-        names: ['group-events', 'g'],
-        type: 'bool',
-        help: 'Group all events from a single poll into one emitted datum.'
     },
     {
         names: ['name', 'n'],
@@ -81,7 +82,34 @@ var OPTIONS = [
         type: 'filterType',
         help: 'Either "object" or "directory" to limit matching to entries of '
             + 'that type.'
-    }
+    },
+    {
+        group: 'Sync Options'
+    },
+    {
+        names: ['sync-dir', 's'],
+        type: 'string',
+        helpArg: 'DIR',
+        help: 'Sync the watched objects (this implies "-t object", syncing '
+            + 'directories is not supported) to the given local directory. '
+            + 'The event for an object is given after the sync is complete. '
+            + 'This feature is intended for relatively small files.'
+    },
+    {
+        names: ['sync-delete', 'D'],
+        type: 'bool',
+        help: 'Allow syncing to delete local files in the given sync dir.'
+    },
+    {
+        names: ['disable-sync-delete-guard'],
+        type: 'bool',
+        help: 'Disable the automatic sync-delete guard. See "Syncing" below.'
+    },
+    {
+        names: ['dry-run'],
+        type: 'bool',
+        help: 'Dry-run on syncing/deleting files.'
+    },
 ];
 
 var log = bunyan.createLogger({
@@ -139,17 +167,40 @@ function fatal(errmsg) {
 
 function mwatchdir(opts) {
     opts.log.debug({dir: opts.dir, interval: opts.interval,
-        groupEvents: opts.groupEvents, filter: opts.filter}, 'mwatchdir');
+        filter: opts.filter, json: opts.json,
+        syncDir: opts.syncDir, syncDelete: opts.syncDelete,
+        disableSyncDeleteGuard: opts.disableSyncDeleteGuard,
+        dryRun: opts.dryRun}, 'mwatchdir');
 
     var watcher = new MantaDirWatcher({
         log: opts.log,
         dir: opts.dir,
         interval: opts.interval,
-        groupEvents: opts.groupEvents,
-        filter: opts.filter
+        filter: opts.filter,
+        syncDir: opts.syncDir,
+        syncDelete: opts.syncDelete,
+        disableSyncDeleteGuard: opts.disableSyncDeleteGuard,
+        dryRun: opts.dryRun
     });
-    watcher.on('data', function (event) {
-        console.log(JSON.stringify(event));
+
+    var firstEvent = true;
+
+    watcher.on('data', function (group) {
+        if (opts.json) {
+            console.log(JSON.stringify(group));
+        } else {
+            var tabOpts = {
+                skipHeader: !firstEvent,
+                columns: [
+                    {lookup: 'action', width: 6},
+                    {lookup: 'timeEvent', width: 24},
+                    {lookup: 'mtime', width: 24},
+                    {lookup: 'path'}
+                ]
+            };
+            tabula(group.events, tabOpts);
+        }
+        firstEvent = false;
     });
 }
 
@@ -178,6 +229,20 @@ function main(argv) {
             '',
             'Options:',
             help,
+            '',
+            'Syncing: With the "-s" option this tool supports syncing files',
+            'from MANTA-DIR to the local DIR. It is intended for downloading',
+            'relatively few and smaller files (e.g. config information).',
+            'Syncing dirs is not supported.',
+            '',
+            'With "-D", local files in DIR without a match in MANTA-DIR will',
+            'be deleted. There is a sanity guard to protect against deleting',
+            'all files in a mis-chosen local DIR: if, on the first poll, there',
+            'are local files that would be deleted *and* there are zero local',
+            'files matching anything in the remote Manta dir (i.e. there is',
+            'no indication that this is a correct sync dir), then mwatchdir',
+            'will error out. "--disable-sync-delete-guard" will turn off this',
+            'guard.'
         ].join('\n'));
         process.exit(0);
     } else if (opts.version) {
@@ -217,9 +282,13 @@ function main(argv) {
     mwatchdir({
         log: log,
         dir: dir,
+        json: opts.json,
         interval: opts.interval,
-        groupEvents: opts.group_events,
-        filter: filter
+        filter: filter,
+        syncDir: opts.sync_dir,
+        syncDelete: opts.sync_delete,
+        disableSyncDeleteGuard: opts.disable_sync_delete_guard,
+        dryRun: opts.dry_run
     });
 }
 
