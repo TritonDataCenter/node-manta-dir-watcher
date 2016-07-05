@@ -85,6 +85,10 @@ code for now.
 When done using the watcher, the `close` method should be called to stop polling
 and to close the underlying Manta client.
 
+## MantaDirWatcher#poke()
+
+Poll for changes now (rather than wait until the next scheduled poll time).
+
 ## Event: data
 
 The `data` event is emitted with whenever a poll finds changes. It looks like

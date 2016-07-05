@@ -1,8 +1,9 @@
 # node-manta-dir-watcher Changelog
 
-## 1.0.1 (not yet released)
+## 1.1.0 (not yet released)
 
-(nothing yet)
+- Fix handling for `clientOpts` option to `MantaDirWatcher`.
+- Add `<watcher>.poke()` to poll immediately.
 
 
 ## 1.0.0

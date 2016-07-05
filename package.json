@@ -1,6 +1,6 @@
 {
     "name": "manta-dir-watcher",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "description": "watch a Manta directory for file changes",
     "author": "Joyent (http://www.joyent.com)",
     "main": "./lib/manta-dir-watcher.js",
@@ -18,7 +18,7 @@
         "assert-plus": "^1.0.0",
         "bunyan": "^1.8.1",
         "dashdash": "^1.14.0",
-        "manta": "^2.0.7",
+        "manta": "^3.0.0",
         "mkdirp": "^0.5.1",
         "rimraf": "^2.5.2",
         "tabula": "^1.8.0",
