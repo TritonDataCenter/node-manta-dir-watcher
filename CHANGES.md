@@ -1,5 +1,10 @@
 # node-manta-dir-watcher Changelog
 
+## 1.1.1 (not yet released)
+
+(nothing yet)
+
+
 ## 1.1.0
 
 - Fix handling for `clientOpts` option to `MantaDirWatcher`.
