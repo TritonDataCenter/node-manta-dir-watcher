@@ -1,5 +1,10 @@
 # node-manta-dir-watcher Changelog
 
+## 1.2.1 (not yet released)
+
+(nothing yet)
+
+
 ## 1.2.0
 
 - Add `oneShot` boolean option to `MantaDirWatcher` to do a single poll and then close.
