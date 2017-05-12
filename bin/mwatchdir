@@ -84,6 +84,11 @@ var OPTIONS = [
             + 'that type.'
     },
     {
+        names: ['first'],
+        type: 'bool',
+        help: 'Stop on first event.'
+    },
+    {
         group: 'Sync Options'
     },
     {
@@ -179,7 +184,8 @@ function mwatchdir(opts) {
         filter: opts.filter, json: opts.json,
         syncDir: opts.syncDir, syncDelete: opts.syncDelete,
         disableSyncDeleteGuard: opts.disableSyncDeleteGuard,
-        oneShot: opts.oneShot, dryRun: opts.dryRun}, 'mwatchdir');
+        oneShot: opts.oneShot, first: opts.first,
+        dryRun: opts.dryRun}, 'mwatchdir');
 
     var watcher = new MantaDirWatcher({
         log: opts.log,
@@ -211,6 +217,9 @@ function mwatchdir(opts) {
             tabula(group.events, tabOpts);
         }
         firstEvent = false;
+        if (opts.first) {
+            watcher.close();
+        }
     });
 }
 
@@ -295,6 +304,7 @@ function main(argv) {
         json: opts.json,
         interval: opts.interval,
         oneShot: opts.one_shot,
+        first: opts.first,
         filter: filter,
         syncDir: opts.sync_dir,
         syncDelete: opts.sync_delete,

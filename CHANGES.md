@@ -1,8 +1,13 @@
 # node-manta-dir-watcher Changelog
 
-## 1.2.1 (not yet released)
+## not yet released
 
 (nothing yet)
+
+
+## 1.3.0
+
+- Add `mwatchdir --first ...` option to exit after the first event.
 
 
 ## 1.2.0
